@@ -1,8 +1,8 @@
-import random
 import string
 import re
 
 from fastmcp import FastMCP
+import secrets
 
 # Create the MCP server instance
 mcp = FastMCP("Demo MCP Server 🚀")
@@ -25,7 +25,7 @@ def generate_password(length: int = 12, include_symbols: bool = True) -> str:
     if include_symbols:
         characters += "!@#$%^&*()_+-=[]{}|;:,.<>?"
     
-    password = ''.join(random.choice(characters) for _ in range(length))
+    password = ''.join(secrets.choice(characters) for _ in range(length))
     return password
 
 @mcp.tool
