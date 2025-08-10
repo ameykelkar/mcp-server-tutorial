@@ -1,26 +1,23 @@
-# MCP Server Tutorial 🚀
+## MCP Server Tutorial 🚀
 
-A tutorial project demonstrating how to build a Model Context Protocol (MCP) server using FastMCP. This server provides password-related tools for generating and evaluating password strength.
+A tutorial project demonstrating how to build Model Context Protocol (MCP) servers using FastMCP. This repo contains three example servers:
+
+- Demo password tools (`server.py`)
+- Employee API tools via a REST backend (`server_api.py`)
+- OpenAPI-generated tools for the Petstore API (`server_openapi.py`)
 
 ## What is MCP?
 
-The Model Context Protocol (MCP) is a standard that enables AI assistants to securely connect to external data sources and tools. This tutorial shows how to create your own MCP server that AI assistants can use to extend their capabilities.
-
-## Features
-
-This MCP server provides two main tools:
-
-- **🔐 Password Generation**: Create secure random passwords with customizable length and character sets
-- **📊 Password Scoring**: Evaluate password strength with detailed feedback and security recommendations
+The Model Context Protocol (MCP) is a standard that enables AI assistants to securely connect to external data sources and tools. These examples show different ways to build MCP servers that assistants can use.
 
 ## Prerequisites
 
 - Python 3.13 or higher
-- [uv](https://docs.astral.sh/uv/) package manager (recommended) or pip
+- `uv` package manager (recommended) or pip
 
 ## Installation
 
-### Using uv (Recommended)
+### Using uv (recommended)
 
 1. Clone the repository:
 ```bash
@@ -41,160 +38,124 @@ git clone <repository-url>
 cd mcp-server-tutorial
 ```
 
-2. Create a virtual environment:
+2. Create a virtual environment and install deps:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install fastmcp>=2.10.5
+pip install 'fastmcp>=2.10.5' 'httpx>=0.25.0'
 ```
 
 ## Usage
 
-### Running the Server
+### 1) Demo Password Tools — `server.py`
 
-Start the MCP server:
-
+Run the server:
 ```bash
-# Using uv
 uv run server.py
-
-# Using python directly
+# or
 python server.py
 ```
 
-The server will start and be ready to accept connections from MCP-compatible clients.
+Available tools:
+- `generate_password(length: int = 12, include_symbols: bool = True) -> str`
+  - Generates a random password. Minimum length is 4.
+- `score_password(password: str) -> dict`
+  - Returns `score` (0–10), `strength`, `feedback` list, `length`, and `character_types` details.
+
+Examples:
+```python
+generate_password(length=16, include_symbols=True)
+score_password("MySecureP@ssw0rd!")
+```
+
+### 2) Employee API Tools — `server_api.py`
+
+Backed by `https://dummy.restapiexample.com/api/v1`.
+
+Run the server:
+```bash
+uv run server_api.py
+# or
+python server_api.py
+```
+
+Available tools:
+- `get_all_employees() -> Dict[str, Any]`
+- `get_employee_by_id(employee_id: int) -> Dict[str, Any]`
+- `filter_employees_by_age(min_age: Optional[int] = None, max_age: Optional[int] = None) -> Dict[str, Any]`
+- `filter_employees_by_salary(min_salary: Optional[int] = None, max_salary: Optional[int] = None) -> Dict[str, Any]`
+- `search_employees_by_name(name_query: str) -> Dict[str, Any]`
+- `get_employee_statistics() -> Dict[str, Any]`
+
+Notes:
+- The external API can be rate-limited or flaky; errors are returned as `{ "error": "..." }`.
+
+### 3) Petstore OpenAPI Tools — `server_openapi.py`
+
+Generates tools dynamically from the Petstore OpenAPI spec.
+
+Environment variables (optional):
+- `PETSTORE_OPENAPI_URL` (default: `https://petstore3.swagger.io/api/v3/openapi.json`)
+- `PETSTORE_BASE_URL` (default: `https://petstore3.swagger.io/api/v3`)
+
+OpenAPI specification:
+`https://petstore3.swagger.io/api/v3/openapi.json`
+
+Run the server:
+```bash
+uv run server_openapi.py
+# or
+python server_openapi.py
+```
+
+About the tools:
+- Tools are generated directly from the OpenAPI spec and mirror API operations
+  (e.g., pet, store, and user endpoints in the Petstore API).
+- Requires internet access to fetch the OpenAPI spec and call the API.
 
 ### Connecting to AI Assistants
 
-To use this MCP server with AI assistants like Claude Desktop, you'll need to configure the client to connect to your server. Refer to the specific documentation for your AI assistant on how to add MCP servers.
-
-## Available Tools
-
-### 1. Generate Password
-
-Generate a secure random password with customizable options.
-
-**Parameters:**
-- `length` (int, optional): Length of the password (default: 12, minimum: 4)
-- `include_symbols` (bool, optional): Whether to include symbols (default: True)
-
-**Example:**
-```python
-# Generate a 16-character password with symbols
-generate_password(length=16, include_symbols=True)
-
-# Generate a 12-character password without symbols
-generate_password(length=12, include_symbols=False)
-```
-
-### 2. Score Password
-
-Evaluate password strength and get detailed security feedback.
-
-**Parameters:**
-- `password` (str): The password to evaluate
-
-**Returns:**
-- `score` (int): Strength score from 0-10
-- `strength` (str): Overall strength assessment
-- `feedback` (list): Detailed recommendations
-- `length` (int): Password length
-- `character_types` (dict): Analysis of character usage
-
-**Scoring Criteria:**
-- **Length (0-3 points)**: Longer passwords score higher
-- **Character Variety (0-4 points)**: Using different character types improves score
-- **Pattern Analysis**: Deductions for weak patterns, sequential characters, repetition
-- **Bonus Points**: Extra points for very long passwords (16+ characters)
-
-**Example:**
-```python
-score_password("MySecureP@ssw0rd!")
-# Returns detailed analysis with score, strength level, and feedback
-```
+Configure your MCP-compatible client (e.g., Claude Desktop) to connect to the server you are running. Refer to your client’s documentation for how to register MCP servers.
 
 ## Development
 
-### Project Structure
+### Project structure
 
 ```
 mcp-server-tutorial/
-├── server.py          # Main MCP server implementation
-├── pyproject.toml     # Project configuration
-├── README.md         # This file
-└── uv.lock          # Dependency lock file
+├── server.py            # Demo password tools
+├── server_api.py        # Employee API tools (dummy.restapiexample.com)
+├── server_openapi.py    # OpenAPI-generated tools (Petstore)
+├── README.md            # This file
+├── pyproject.toml       # Project configuration
+└── uv.lock              # Dependency lock file
 ```
 
-### Adding New Tools
+### Adding new tools
 
-To add new tools to the MCP server:
-
+For hand-written tools (e.g., in `server.py` or `server_api.py`):
 1. Define a function with the `@mcp.tool` decorator
-2. Add proper type hints and docstrings
-3. Implement your tool logic
-4. The tool will automatically be available to MCP clients
+2. Add proper type hints and a concise docstring
+3. Implement your logic; tools are auto-exposed to MCP clients
 
-**Example:**
 ```python
 @mcp.tool
 def my_new_tool(param: str) -> str:
-    """Description of what this tool does
-    
-    Args:
-        param: Description of the parameter
-        
-    Returns:
-        Description of the return value
-    """
-    # Your implementation here
     return "result"
 ```
 
+For OpenAPI-based servers, adjust the OpenAPI source URL and base URL, then rebuild the server with `FastMCP.from_openapi` as shown in `server_openapi.py`.
+
 ## Dependencies
 
-- **FastMCP**: A fast and simple framework for building MCP servers
-- **Python Standard Library**: Uses `random`, `string`, and `re` modules
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is for educational purposes. Please refer to the repository license for usage terms.
-
-## Resources
-
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [FastMCP Documentation](https://github.com/jlowin/fastmcp)
-- [Password Security Best Practices](https://owasp.org/www-project-cheat-sheets/cheatsheets/Password_Storage_Cheat_Sheet.html)
+- `fastmcp>=2.10.5`
+- `httpx>=0.25.0`
 
 ## Troubleshooting
 
-### Common Issues
-
-**Server won't start:**
-- Ensure Python 3.13+ is installed
-- Check that all dependencies are installed
-- Verify no other service is using the same port
-
-**AI assistant can't connect:**
-- Confirm the server is running
-- Check the connection configuration in your AI assistant
-- Ensure firewall settings allow the connection
-
-**Tool not working as expected:**
-- Check the function parameters and types
-- Review the server logs for error messages
-- Ensure input validation requirements are met
+- **Server won’t start**: Verify Python 3.13+, dependencies installed, and network availability (for API/OpenAPI servers).
+- **External API errors**: The Employee and Petstore servers depend on public APIs that may rate-limit or return intermittent errors. Check the returned `{ "error": "..." }` message.
+- **Client can’t connect**: Confirm the server process is running and the MCP client is correctly configured.
 
 ---
 
